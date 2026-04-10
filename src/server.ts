@@ -126,11 +126,15 @@ app.delete("/projects/:id", async (req, res) => {
       return res.status(404).json({ error: "Project not found" });
     }
 
+    await prisma.file.deleteMany({
+      where: { projectId: id },
+    });
+
     await prisma.project.delete({
       where: { id },
     });
 
-    res.json({ message: "Project deleted successfully" });
+    res.json({ message: "Project and related files deleted successfully" });
   } catch (error) {
     console.error("Error deleting project:", error);
     res.status(500).json({ error: "Internal server error" });
