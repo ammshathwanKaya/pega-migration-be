@@ -80,7 +80,7 @@ app.post("/projects", async (req, res) => {
 app.put("/projects/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, description, sourceType } = req.body;
+    const { name, description } = req.body;
 
     const existingProject = await prisma.project.findUnique({
       where: { id },
@@ -90,20 +90,11 @@ app.put("/projects/:id", async (req, res) => {
       return res.status(404).json({ error: "Project not found" });
     }
 
-    const allowedTypes = ["pega", "salesforce"];
-
-    if (sourceType && !allowedTypes.includes(sourceType)) {
-      return res.status(400).json({
-        error: `Invalid sourceType. Allowed values: ${allowedTypes.join(", ")}`,
-      });
-    }
-
     const updatedProject = await prisma.project.update({
       where: { id },
       data: {
         name,
         description,
-        ...(sourceType && { sourceType }),
       },
     });
 
