@@ -3,6 +3,7 @@ import cors from "cors";
 import morgan from "morgan";
 import { prisma } from "./lib/prisma";
 import multer from "multer";
+import { uploadToCloudinary } from "./helper/upload-helper";
 
 const app = express();
 
@@ -12,7 +13,7 @@ app.use(morgan("tiny"));
 app.use(express.json());
 
 const upload = multer({
-  dest: "uploads/",
+  storage: multer.memoryStorage(),
 });
 
 app.get("/projects", async (req, res) => {
@@ -154,17 +155,23 @@ app.post("/projects/:id/upload", upload.array("files"), async (req, res) => {
       return res.status(400).json({ error: "No files uploaded" });
     }
 
-    await prisma.file.createMany({
-      data: files.map((file) => ({
-        filename: file.originalname,
-        path: file.path,
-        projectId: id,
-      })),
-    });
+    const uploadedFiles = await Promise.all(
+      files.map(async (file) => {
+        const result = await uploadToCloudinary(file.buffer);
+
+        return prisma.file.create({
+          data: {
+            filename: file.originalname,
+            path: result.secure_url as string,
+            projectId: id,
+          },
+        });
+      }),
+    );
 
     res.json({
       message: "Files uploaded successfully",
-      files,
+      uploadedFiles,
     });
   } catch (error) {
     console.error("Error uploading files:", error);
