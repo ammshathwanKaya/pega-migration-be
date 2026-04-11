@@ -1,3 +1,4 @@
+// TODO : Upload file and get insight can be done in another agent
 import { parseStringPromise } from "xml2js";
 import { analyzeWithAI } from "../services/openai.service";
 import axios from "axios";
