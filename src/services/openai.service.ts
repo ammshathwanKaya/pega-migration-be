@@ -4,17 +4,19 @@ import { pegaAnalysisSchema } from "../openai/schemas";
 import { File, Project } from "../../generated/prisma/browser";
 import { randomUUID } from "crypto";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
 export const analyzeWithAI = async (
   userInput: string,
   project: Project,
   files: File[],
+  apiKey: string,
+  model: string = "gpt-4o-mini",
 ) => {
+  const openai = new OpenAI({
+    apiKey,
+  });
+
   const response = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
+    model,
     messages: [
       {
         role: "system",

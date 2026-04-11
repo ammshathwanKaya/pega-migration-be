@@ -10,7 +10,9 @@ import {
 } from "../controllers/project.controller";
 import {
   analyzeProject,
+  getOpenAIConfigController,
   getProjectAnalysis,
+  saveOpenAIConfig,
 } from "../controllers/openai.controller";
 
 const router = Router();
@@ -18,6 +20,9 @@ const router = Router();
 const upload = multer({
   storage: multer.memoryStorage(),
 });
+
+router.post("/config", saveOpenAIConfig);
+router.get("/config", getOpenAIConfigController);
 
 // project routes
 router.get("/", getProjects);

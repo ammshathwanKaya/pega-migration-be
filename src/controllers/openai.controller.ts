@@ -4,6 +4,7 @@ import { analyzeWithAI } from "../services/openai.service";
 import axios from "axios";
 import { prisma } from "../lib/prisma";
 import { Request, Response } from "express";
+import { getOpenAIConfig } from "../services/config.service";
 
 type ParsedFile = {
   filename: string;
@@ -104,10 +105,22 @@ ${fileSummaries
 
     const { files, ...otherProjectMetadata } = project;
 
+    let config;
+
+    try {
+      config = await getOpenAIConfig();
+    } catch (err: any) {
+      return res.status(400).json({
+        error: err.message,
+      });
+    }
+
     const result = await analyzeWithAI(
       userInput,
       otherProjectMetadata,
       project.files,
+      config.apiKey,
+      config.model,
     );
 
     const savedAnalysis = await prisma.analysis.upsert({
@@ -157,5 +170,63 @@ export const getProjectAnalysis = async (
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Failed to fetch analysis" });
+  }
+};
+
+export const saveOpenAIConfig = async (req: Request, res: Response) => {
+  try {
+    const { apiKey, model } = req.body;
+
+    if (!apiKey) {
+      return res.status(400).json({ error: "API key is required" });
+    }
+
+    const existing = await prisma.openAIConfig.findFirst();
+
+    let config;
+
+    if (existing) {
+      config = await prisma.openAIConfig.update({
+        where: { id: existing.id },
+        data: { apiKey, model },
+      });
+    } else {
+      config = await prisma.openAIConfig.create({
+        data: { apiKey, model },
+      });
+    }
+
+    res.json({ data: config });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to save config" });
+  }
+};
+
+export const getOpenAIConfigController = async (
+  req: Request,
+  res: Response,
+) => {
+  try {
+    const config = await prisma.openAIConfig.findFirst();
+
+    if (!config) {
+      return res.status(404).json({
+        error: "OpenAI config not found",
+      });
+    }
+
+    res.json({
+      data: {
+        id: config.id,
+        model: config.model,
+        hasApiKey: !!config.apiKey,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      error: "Failed to fetch OpenAI config",
+    });
   }
 };

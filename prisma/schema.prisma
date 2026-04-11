@@ -45,3 +45,11 @@ model Analysis {
   updatedAt  DateTime @updatedAt
   project Project  @relation(fields: [projectId], references: [id])
 }
+
+model OpenAIConfig {
+  id        String   @id @default(uuid())
+  apiKey    String
+  model     String   @default("gpt-4o-mini")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
