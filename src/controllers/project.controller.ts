@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { prisma } from "../lib/prisma";
-import { uploadToCloudinary } from "../helper/upload-helper";
+import { uploadToSupabase } from "../helper/upload-helper";
 
 // types
 type CreateProjectBody = {
@@ -166,12 +166,12 @@ export const uploadFiles = async (
 
     const uploadedFiles = await Promise.all(
       files.map(async (file) => {
-        const result = await uploadToCloudinary(file.buffer);
+        const result = await uploadToSupabase(file);
 
         return prisma.file.create({
           data: {
             filename: file.originalname,
-            path: result.secure_url as string,
+            path: result.url,
             projectId: id,
           },
         });

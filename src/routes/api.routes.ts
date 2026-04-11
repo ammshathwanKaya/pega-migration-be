@@ -8,7 +8,10 @@ import {
   deleteProject,
   uploadFiles,
 } from "../controllers/project.controller";
-import { analyzeProject } from "../controllers/openai.controller";
+import {
+  analyzeProject,
+  getProjectAnalysis,
+} from "../controllers/openai.controller";
 
 const router = Router();
 
@@ -28,5 +31,6 @@ router.post("/:id/upload", upload.array("files"), uploadFiles);
 
 // AI route
 router.post("/analyse/:id", analyzeProject);
+router.get("/:id/analysis", getProjectAnalysis);
 
 export default router;

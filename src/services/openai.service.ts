@@ -1,12 +1,18 @@
 import OpenAI from "openai";
 import { analysePrompt } from "../openai/prompts";
-import { simpleAnalysisSchema } from "../openai/schemas";
+import { pegaAnalysisSchema } from "../openai/schemas";
+import { File, Project } from "../../generated/prisma/browser";
+import { randomUUID } from "crypto";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-export const analyzeWithAI = async (userInput: string) => {
+export const analyzeWithAI = async (
+  userInput: string,
+  project: Project,
+  files: File[],
+) => {
   const response = await openai.chat.completions.create({
     model: "gpt-4o-mini",
     messages: [
@@ -21,7 +27,7 @@ export const analyzeWithAI = async (userInput: string) => {
     ],
     response_format: {
       type: "json_schema",
-      json_schema: simpleAnalysisSchema,
+      json_schema: pegaAnalysisSchema,
     },
   });
 
@@ -31,7 +37,13 @@ export const analyzeWithAI = async (userInput: string) => {
       : JSON.stringify(response.choices[0].message.content);
 
   try {
-    return JSON.parse(raw || "{}");
+    const data = JSON.parse(raw || "{}");
+    const analysis = data?.analysis;
+    return {
+      analysis: { ...analysis, projectId: project?.id, id: randomUUID() },
+      project,
+      files,
+    };
   } catch (error) {
     console.error("Invalid JSON from AI:", raw);
     throw new Error("Invalid AI response");
