@@ -1,6 +1,6 @@
 // TODO : Upload file and get insight can be done in another agent
 import { parseStringPromise } from "xml2js";
-import { analyzeWithAI } from "../services/openai.service";
+import { analyzeWithAI, validateApiKey } from "../services/openai.service";
 import axios from "axios";
 import { prisma } from "../lib/prisma";
 import { Request, Response } from "express";
@@ -21,6 +21,28 @@ const chunkText = (text: string, size: number): string[] => {
     chunks.push(text.slice(i, i + size));
   }
   return chunks;
+};
+
+export const validateOpenAIKey = async (
+  req: Request<unknown, unknown, { apiKey: string }>,
+  res: Response,
+) => {
+  const { apiKey } = req.body;
+
+  try {
+    const isValid = await validateApiKey(apiKey);
+
+    if (isValid) {
+      return res.status(200).json({ message: "API Key is valid" });
+    } else {
+      return res.status(401).json({ error: "Invalid OpenAI API Key" });
+    }
+  } catch (error) {
+    console.error("Error validating API key:", error);
+    return res
+      .status(500)
+      .json({ error: "An error occurred while validating the API key" });
+  }
 };
 
 export const analyzeProject = async (

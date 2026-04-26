@@ -51,3 +51,21 @@ export const analyzeWithAI = async (
     throw new Error("Invalid AI response");
   }
 };
+
+export const validateApiKey = async (apiKey: string): Promise<boolean> => {
+  const openai = new OpenAI({
+    apiKey,
+  });
+
+  try {
+    const response = await openai.models.list();
+    if (response && response.data) {
+      return true;
+    }
+  } catch (error) {
+    console.error("Error validating API key:", error);
+    return false;
+  }
+
+  return false;
+};

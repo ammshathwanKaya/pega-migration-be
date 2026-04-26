@@ -13,6 +13,7 @@ import {
   getOpenAIConfigController,
   getProjectAnalysis,
   saveOpenAIConfig,
+  validateOpenAIKey,
 } from "../controllers/openai.controller";
 
 const router = Router();
@@ -37,5 +38,6 @@ router.post("/:id/upload", upload.array("files"), uploadFiles);
 // AI route
 router.post("/analyse/:id", analyzeProject);
 router.get("/:id/analysis", getProjectAnalysis);
+router.post("/validate", validateOpenAIKey);
 
 export default router;
